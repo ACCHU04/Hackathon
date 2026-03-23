@@ -1,0 +1,3 @@
+# See root requirements.txt — this file references the root for Docker context.
+# When building from the backend/ directory alone, copy root requirements.txt here.
+-r ../requirements.txt

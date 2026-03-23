@@ -1,0 +1,60 @@
+{
+  "demo_id": "demo2_false",
+  "source_url": "https://example.com/article-false",
+  "description": "Health misinformation article — claims are factually incorrect and expected to be flagged as FALSE.",
+  "input_text": "Scientists have conclusively proven that the MMR vaccine causes autism in children, according to a widely cited 1998 study that has never been retracted. Vitamin C megadoses of 10,000 mg per day have been shown to cure cancer in over 90% of patients. The human brain uses only 10% of its capacity at any time. Drinking eight glasses of water per day is a scientifically established medical requirement for all adults.",
+  "expected_output": {
+    "article": {
+      "title": "Health Facts You Should Know",
+      "author": "",
+      "date": "",
+      "text": "Scientists have conclusively proven that the MMR vaccine causes autism in children, according to a widely cited 1998 study that has never been retracted. Vitamin C megadoses of 10,000 mg per day have been shown to cure cancer in over 90% of patients. The human brain uses only 10% of its capacity at any time. Drinking eight glasses of water per day is a scientifically established medical requirement for all adults."
+    },
+    "claims": [
+      {
+        "id": "c1",
+        "text": "The MMR vaccine causes autism in children.",
+        "original_span": [0, 84],
+        "expected_verdict": "FALSE",
+        "confidence": 0.99,
+        "notes": "The 1998 Wakefield study was fully retracted by The Lancet in 2010. Wakefield lost his medical license. Dozens of large studies find no link."
+      },
+      {
+        "id": "c2",
+        "text": "The 1998 MMR-autism study has never been retracted.",
+        "original_span": [85, 152],
+        "expected_verdict": "FALSE",
+        "confidence": 0.99,
+        "notes": "The Lancet formally retracted the Wakefield paper in February 2010."
+      },
+      {
+        "id": "c3",
+        "text": "Vitamin C megadoses of 10,000 mg per day cure cancer in over 90% of patients.",
+        "original_span": [153, 248],
+        "expected_verdict": "FALSE",
+        "confidence": 0.97,
+        "notes": "No peer-reviewed evidence supports this claim. High-dose vitamin C is under research but not an established cancer cure."
+      },
+      {
+        "id": "c4",
+        "text": "The human brain uses only 10% of its capacity at any time.",
+        "original_span": [249, 308],
+        "expected_verdict": "FALSE",
+        "confidence": 0.99,
+        "notes": "This is a well-known myth. Brain imaging shows all regions are active; virtually all of the brain is used."
+      },
+      {
+        "id": "c5",
+        "text": "Drinking eight glasses of water per day is a scientifically established medical requirement for all adults.",
+        "original_span": [309, 415],
+        "expected_verdict": "FALSE",
+        "confidence": 0.88,
+        "notes": "No scientific consensus mandates exactly 8 glasses. Hydration needs vary widely by body size, climate, and activity."
+      }
+    ],
+    "meta": {
+      "model_used": "gpt-4o",
+      "runtime_ms": 1085
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "demo_id": "demo3_conflicting",
+  "source_url": "https://example.com/article-conflict",
+  "description": "Economic statistics article — some claims have conflicting or ambiguous evidence across sources.",
+  "input_text": "The United States economy is the largest in the world, with a GDP of $25.46 trillion in 2022. The unemployment rate in the US hit a record low of 3.4% in early 2023, a figure not seen since 1969. Inflation peaked at 9.1% in June 2022, the highest in 40 years. The Federal Reserve raised interest rates 11 times between March 2022 and July 2023. Economists are divided on whether a soft landing has been achieved, with some forecasting a recession within 12 months and others projecting continued growth.",
+  "expected_output": {
+    "article": {
+      "title": "US Economy: Key Indicators 2022-2023",
+      "author": "",
+      "date": "",
+      "text": "The United States economy is the largest in the world, with a GDP of $25.46 trillion in 2022. The unemployment rate in the US hit a record low of 3.4% in early 2023, a figure not seen since 1969. Inflation peaked at 9.1% in June 2022, the highest in 40 years. The Federal Reserve raised interest rates 11 times between March 2022 and July 2023. Economists are divided on whether a soft landing has been achieved, with some forecasting a recession within 12 months and others projecting continued growth."
+    },
+    "claims": [
+      {
+        "id": "c1",
+        "text": "The United States has the largest economy in the world.",
+        "original_span": [0, 53],
+        "expected_verdict": "TRUE",
+        "confidence": 0.96,
+        "notes": "Consistent across sources when measured by nominal GDP."
+      },
+      {
+        "id": "c2",
+        "text": "The US GDP was $25.46 trillion in 2022.",
+        "original_span": [54, 92],
+        "expected_verdict": "PARTIALLY_TRUE",
+        "confidence": 0.78,
+        "notes": "World Bank reports $25.46T; IMF cites $25.74T. Different methodologies yield slightly different figures — classic conflicting evidence scenario."
+      },
+      {
+        "id": "c3",
+        "text": "The US unemployment rate reached 3.4% in early 2023.",
+        "original_span": [93, 148],
+        "expected_verdict": "TRUE",
+        "confidence": 0.98
+      },
+      {
+        "id": "c4",
+        "text": "A US unemployment rate of 3.4% was last seen in 1969.",
+        "original_span": [149, 194],
+        "expected_verdict": "TRUE",
+        "confidence": 0.95
+      },
+      {
+        "id": "c5",
+        "text": "US inflation peaked at 9.1% in June 2022.",
+        "original_span": [195, 238],
+        "expected_verdict": "TRUE",
+        "confidence": 0.99
+      },
+      {
+        "id": "c6",
+        "text": "The June 2022 inflation rate of 9.1% was the highest in 40 years.",
+        "original_span": [239, 288],
+        "expected_verdict": "TRUE",
+        "confidence": 0.97
+      },
+      {
+        "id": "c7",
+        "text": "The Federal Reserve raised interest rates 11 times between March 2022 and July 2023.",
+        "original_span": [289, 373],
+        "expected_verdict": "PARTIALLY_TRUE",
+        "confidence": 0.72,
+        "notes": "Some sources cite 10 hikes, others 11, depending on whether the July 2023 hike is included. Conflicting source counts."
+      },
+      {
+        "id": "c8",
+        "text": "Some economists forecast a US recession within 12 months.",
+        "original_span": [374, 465],
+        "expected_verdict": "UNVERIFIABLE",
+        "confidence": 0.50,
+        "notes": "Prediction / forecast — not independently verifiable as true or false at time of writing."
+      }
+    ],
+    "meta": {
+      "model_used": "gpt-4o",
+      "runtime_ms": 1392
+    }
+  }
+}

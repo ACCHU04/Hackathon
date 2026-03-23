@@ -1,0 +1,76 @@
+{
+  "demo_id": "demo1_true",
+  "source_url": "https://example.com/article-true",
+  "description": "Science article — all major claims are verifiable and expected to be TRUE.",
+  "input_text": "NASA's James Webb Space Telescope, launched on December 25, 2021, has captured images of galaxies formed just 300 million years after the Big Bang. The telescope cost approximately $10 billion to develop over a period of more than two decades. It operates at a temperature of –233 °C, shielded by a five-layer sunshield the size of a tennis court. The Webb telescope orbits the Sun at the second Lagrange point (L2), approximately 1.5 million kilometres from Earth.",
+  "expected_output": {
+    "article": {
+      "title": "James Webb Space Telescope: Key Facts",
+      "author": "",
+      "date": "",
+      "text": "NASA's James Webb Space Telescope, launched on December 25, 2021, has captured images of galaxies formed just 300 million years after the Big Bang. The telescope cost approximately $10 billion to develop over a period of more than two decades. It operates at a temperature of –233 °C, shielded by a five-layer sunshield the size of a tennis court. The Webb telescope orbits the Sun at the second Lagrange point (L2), approximately 1.5 million kilometres from Earth."
+    },
+    "claims": [
+      {
+        "id": "c1",
+        "text": "NASA's James Webb Space Telescope was launched on December 25, 2021.",
+        "original_span": [0, 68],
+        "expected_verdict": "TRUE",
+        "confidence": 0.98
+      },
+      {
+        "id": "c2",
+        "text": "The James Webb Space Telescope has captured images of galaxies formed 300 million years after the Big Bang.",
+        "original_span": [69, 162],
+        "expected_verdict": "TRUE",
+        "confidence": 0.95
+      },
+      {
+        "id": "c3",
+        "text": "The James Webb Space Telescope cost approximately $10 billion to develop.",
+        "original_span": [163, 228],
+        "expected_verdict": "TRUE",
+        "confidence": 0.97
+      },
+      {
+        "id": "c4",
+        "text": "The James Webb Space Telescope was developed over more than two decades.",
+        "original_span": [229, 270],
+        "expected_verdict": "TRUE",
+        "confidence": 0.96
+      },
+      {
+        "id": "c5",
+        "text": "The Webb telescope operates at –233 °C.",
+        "original_span": [271, 314],
+        "expected_verdict": "TRUE",
+        "confidence": 0.94
+      },
+      {
+        "id": "c6",
+        "text": "The Webb telescope is shielded by a five-layer sunshield the size of a tennis court.",
+        "original_span": [315, 390],
+        "expected_verdict": "TRUE",
+        "confidence": 0.91
+      },
+      {
+        "id": "c7",
+        "text": "The Webb telescope orbits the Sun at the second Lagrange point (L2).",
+        "original_span": [391, 455],
+        "expected_verdict": "TRUE",
+        "confidence": 0.99
+      },
+      {
+        "id": "c8",
+        "text": "The L2 Lagrange point is approximately 1.5 million kilometres from Earth.",
+        "original_span": [456, 520],
+        "expected_verdict": "TRUE",
+        "confidence": 0.98
+      }
+    ],
+    "meta": {
+      "model_used": "gpt-4o",
+      "runtime_ms": 1240
+    }
+  }
+}

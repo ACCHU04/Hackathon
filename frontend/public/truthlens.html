@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TruthLens — AI-Powered Fact Verification</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<link rel="stylesheet" href="/globals.css">
+<style>
+/* Language dropdown */
+.lang-wrap{position:relative;display:inline-flex}
+.lang-btn{display:flex;align-items:center;gap:5px;background:rgba(0,212,255,.06);border:1px solid var(--bdr2);border-radius:8px;padding:5px 10px;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:var(--cyan);transition:all .18s}
+.lang-btn:hover{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.35)}
+.lang-btn .lang-flag{font-size:14px;line-height:1}
+.lang-dd{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#0A1220;border:1px solid var(--bdr2);border-radius:10px;padding:5px;min-width:170px;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:fadeUp .2s ease}
+.lang-dd.open{display:block}
+.lang-opt{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;cursor:pointer;font-size:11px;font-weight:500;color:var(--muted);transition:all .15s;border:none;background:none;width:100%;font-family:inherit;text-align:left}
+.lang-opt:hover{background:rgba(0,212,255,.08);color:var(--cyan)}
+.lang-opt.active{background:rgba(0,212,255,.1);color:var(--cyan);font-weight:700}
+.lang-opt .lf{font-size:16px;flex-shrink:0}
+.lang-opt .ln{flex:1}
+.lang-opt .lc{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+[dir=rtl] body{direction:rtl;text-align:right}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- SETTINGS MODAL -->
+<div class="mo" id="mSet">
+  <div class="mb">
+    <div class="mt">Settings <button class="ib sm sq" onclick="cm('mSet')"><i data-lucide="x" style="width:14px;height:14px;stroke:currentColor"></i></button></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">LLM Model</label><select class="inp" style="width:100%"><option>GPT-4o (OpenAI)</option><option>Gemini 1.5 Pro</option><option>Claude 3.5 Sonnet</option></select></div>
+      <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">Search Provider</label><select class="inp" style="width:100%"><option>SerpAPI → Tavily → DuckDuckGo</option><option>Tavily only</option><option>DuckDuckGo only</option></select></div>
+      <button class="ib primary" style="justify-content:center;width:100%;margin-top:4px" onclick="cm('mSet');toast('Settings saved','green')"><i data-lucide="save" style="width:14px;height:14px;stroke:#04080F"></i>Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERRIDE MODAL -->
+<div class="mo" id="mOvr">
+  <div class="mb">
+    <div class="mt">Override Verdict <button class="ib sm sq" onclick="cm('mOvr')"><i data-lucide="x" style="width:14px;height:14px;stroke:currentColor"></i></button></div>
+    <div style="margin-bottom:11px"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">New verdict</label>
+      <select class="inp" id="ovrV" style="width:100%"><option value="TRUE">TRUE — Verified</option><option value="FALSE">FALSE — Contradicted</option><option value="PARTIALLY_TRUE">PARTIALLY_TRUE — Mixed</option><option value="UNVERIFIABLE">UNVERIFIABLE</option></select></div>
+    <div style="margin-bottom:11px"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">Reason</label><textarea class="inp" style="width:100%;height:68px;resize:none" placeholder="Explain…"></textarea></div>
+    <button class="ib warn" style="width:100%;justify-content:center" onclick="applyOvr()"><i data-lucide="check" style="width:14px;height:14px;stroke:currentColor"></i>Apply Override</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header style="position:relative;z-index:10;background:rgba(7,13,24,.96);border-bottom:1px solid var(--bdr2)">
+  <div style="position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.3;pointer-events:none"></div>
+  <div style="display:flex;align-items:center;padding:11px 20px;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+      <div style="width:34px;height:34px;border-radius:9px;background:rgba(0,212,255,.12);border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center"><i data-lucide="search" style="width:16px;height:16px;stroke:var(--cyan)"></i></div>
+      <div><div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;line-height:1">TruthLens</div><div style="font-size:8px;letter-spacing:.15em;color:var(--cyan2);text-transform:uppercase;margin-top:1px">FACT · CLAIM · VERIFY</div></div>
+    </div>
+    <nav style="display:flex;gap:2px;margin-left:8px">
+      <button class="tab on" onclick="setNav(this)"><i data-lucide="zap" style="width:13px;height:13px;stroke:currentColor"></i><span data-i18n="nav_analyze">Analyze</span></button>
+      <button class="tab" onclick="window.location.href='/reports'"><i data-lucide="bar-chart-2" style="width:13px;height:13px;stroke:currentColor"></i><span data-i18n="nav_reports">Reports</span></button>
+      <button class="tab" onclick="window.location.href='/docs'"><i data-lucide="book-open" style="width:13px;height:13px;stroke:currentColor"></i><span data-i18n="nav_docs">Docs</span></button>
+    </nav>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:5px">
+      <div class="vd"></div>
+      <div class="tt"><button class="ib sq" onclick="handleSave()"><i data-lucide="bookmark" style="width:15px;height:15px;stroke:currentColor"></i></button><span class="tip" data-i18n="save_tip">Save</span></div>
+      <div class="tt"><button class="ib sq" onclick="handleShare()"><i data-lucide="share-2" style="width:15px;height:15px;stroke:currentColor"></i></button><span class="tip" data-i18n="share_tip">Share</span></div>
+      <div class="tt"><button class="ib sq" onclick="handleDownload()"><i data-lucide="download" style="width:15px;height:15px;stroke:currentColor"></i></button><span class="tip" data-i18n="export_tip">Export</span></div>
+      <div class="vd"></div>
+      <div class="tt"><button class="ib sq" onclick="om('mSet')"><i data-lucide="settings" style="width:15px;height:15px;stroke:currentColor"></i></button><span class="tip">Settings</span></div>
+      <div class="tt"><button class="ib sq" onclick="toast('Opening docs…','cyan')"><i data-lucide="help-circle" style="width:15px;height:15px;stroke:currentColor"></i></button><span class="tip">Help</span></div>
+      <div class="vd"></div>
+      <!-- LANGUAGE SELECTOR -->
+      <div class="lang-wrap" id="langWrap">
+        <button class="lang-btn" onclick="toggleLangDD()">
+          <span class="lang-flag" id="langFlag">🇺🇸</span>
+          <span id="langCode">EN</span>
+          <i data-lucide="chevron-down" style="width:12px;height:12px;stroke:currentColor"></i>
+        </button>
+        <div class="lang-dd" id="langDD">
+          <button class="lang-opt active" data-lang="en" onclick="setLang('en')"><span class="lf">🇺🇸</span><span class="ln">English</span><span class="lc">EN</span></button>
+          <button class="lang-opt" data-lang="hi" onclick="setLang('hi')"><span class="lf">🇮🇳</span><span class="ln">हिन्दी</span><span class="lc">HI</span></button>
+          <button class="lang-opt" data-lang="ta" onclick="setLang('ta')"><span class="lf">🇮🇳</span><span class="ln">தமிழ்</span><span class="lc">TA</span></button>
+          <button class="lang-opt" data-lang="kn" onclick="setLang('kn')"><span class="lf">🇮🇳</span><span class="ln">ಕನ್ನಡ</span><span class="lc">KN</span></button>
+          <button class="lang-opt" data-lang="te" onclick="setLang('te')"><span class="lf">🇮🇳</span><span class="ln">తెలుగు</span><span class="lc">TE</span></button>
+          <button class="lang-opt" data-lang="de" onclick="setLang('de')"><span class="lf">🇩🇪</span><span class="ln">Deutsch</span><span class="lc">DE</span></button>
+        </div>
+      </div>
+      <div class="vd"></div>
+      <div style="display:flex;align-items:center;gap:6px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);border-radius:99px;padding:4px 11px">
+        <span style="width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite"></span>
+        <span style="font-size:10px;color:var(--green);font-weight:600;letter-spacing:.05em">LIVE · GPT-4o</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div style="position:relative;z-index:2;padding:22px 20px;max-width:1080px;margin:0 auto">
+
+  <!-- HERO -->
+  <div style="text-align:center;margin-bottom:20px;animation:fadeUp .7s ease both">
+    <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(0,212,255,.06);border:1px solid var(--bdr2);border-radius:99px;padding:4px 15px;margin-bottom:12px"><span style="width:5px;height:5px;border-radius:50%;background:var(--cyan);animation:pulse 2s ease-in-out infinite"></span><span data-i18n="hero_badge" style="font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan)">AI-Powered Fact Verification Engine</span></div>
+    <h1 style="font-family:'Orbitron',sans-serif;font-size:clamp(22px,4vw,42px);font-weight:900;line-height:1.05;margin-bottom:10px" data-i18n-html="hero_title">Every Claim.<br><span style="color:var(--cyan);text-shadow:0 0 22px rgba(0,212,255,.4)">Verified.</span></h1>
+    <p data-i18n="hero_desc" style="font-size:13px;color:var(--muted);line-height:1.7;max-width:440px;margin:0 auto;font-weight:300">Upload a PDF, paste an article, record voice — TruthLens extracts every claim and verifies it against Wikipedia + web.</p>
+  </div>
+
+  <!-- MAIN INPUT CARD -->
+  <div id="ic" style="background:var(--card);border:1.5px solid var(--bdr2);border-radius:18px;overflow:hidden;margin-bottom:14px;transition:all .3s">
+    <div style="display:flex;align-items:stretch;background:var(--card2);border-bottom:1px solid var(--bdr)">
+      <button class="tab on" id="tText" onclick="switchTab('text',this)"><i data-lucide="align-left" style="width:13px;height:13px;stroke:currentColor"></i><span data-i18n="tab_text">Text / URL</span></button>
+      <button class="tab" id="tFile" onclick="switchTab('file',this)"><i data-lucide="upload-cloud" style="width:13px;height:13px;stroke:currentColor"></i><span data-i18n="tab_file">Upload File</span></button>
+      <button class="tab" id="tVoice" onclick="switchTab('voice',this)"><i data-lucide="mic" style="width:13px;height:13px;stroke:currentColor"></i><span data-i18n="tab_voice">Voice</span></button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:7px;padding:0 12px;border-left:1px solid var(--bdr)">
+        <i data-lucide="calendar" style="width:13px;height:13px;stroke:rgba(0,212,255,.5);flex-shrink:0"></i>
+        <input type="date" id="dateIn" style="background:transparent;border:1px solid var(--bdr2);border-radius:6px;padding:4px 7px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan2);cursor:pointer;outline:none"/>
+        <div class="vd"></div>
+        <div class="tt"><button class="ib sm sq" onclick="toast('Opening article…','cyan')"><i data-lucide="external-link" style="width:12px;height:12px;stroke:currentColor"></i></button><span class="tip">Open original</span></div>
+        <div class="tt"><button class="ib sm sq danger" onclick="toast('Issue reported','amber')"><i data-lucide="flag" style="width:12px;height:12px;stroke:currentColor"></i></button><span class="tip">Report issue</span></div>
+      </div>
+    </div>
+
+    <!-- TEXT PANEL -->
+    <div id="pText">
+      <textarea id="ta" rows="5" placeholder="Paste a URL (https://…) or article text…&#10;&#10;Load a demo below or press ⌘↵" style="width:100%;background:transparent;border:none;outline:none;resize:none;color:var(--txt);font-family:'Space Grotesk',sans-serif;font-size:13px;line-height:1.75;padding:16px 18px 10px;caret-color:var(--cyan)"></textarea>
+      <div style="display:flex;gap:7px;align-items:center;padding:7px 16px;flex-wrap:wrap">
+        <span style="font-size:10px;color:var(--dim)">Quick demos →</span>
+        <button class="chip" onclick="loadD(0)"><i data-lucide="landmark" style="width:10px;height:10px;stroke:currentColor"></i>Eiffel Tower</button>
+        <button class="chip" onclick="loadD(1)"><i data-lucide="telescope" style="width:10px;height:10px;stroke:currentColor"></i>JWST Facts</button>
+        <button class="chip" onclick="loadD(2)"><i data-lucide="trending-up" style="width:10px;height:10px;stroke:currentColor"></i>US Economy</button>
+      </div>
+    </div>
+
+    <!-- FILE PANEL -->
+    <div id="pFile" style="display:none">
+      <div id="dz" onclick="document.getElementById('fi').click()" style="margin:14px;border:1.5px dashed rgba(0,212,255,.2);border-radius:14px;padding:26px;text-align:center;cursor:pointer;transition:all .25s" ondragover="event.preventDefault();this.style.borderColor='var(--cyan)'" ondragleave="this.style.borderColor='rgba(0,212,255,.2)'" ondrop="doDrop(event)">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(0,212,255,.07);border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;margin:0 auto 12px"><i data-lucide="upload-cloud" style="width:22px;height:22px;stroke:var(--cyan)"></i></div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:5px">Drop file or click to browse</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px">PDF, DOCX, TXT, HTML, MD · up to 10 MB</div>
+        <input type="file" id="fi" accept=".pdf,.docx,.txt,.html,.md" style="display:none" onchange="pickFile(this)"/>
+      </div>
+      <div id="fp" style="display:none;margin:0 14px 14px;padding:11px 14px;background:rgba(0,212,255,.05);border:1px solid var(--bdr2);border-radius:10px;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(0,212,255,.1);border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="file-text" style="width:18px;height:18px;stroke:var(--cyan)"></i></div>
+        <div style="flex:1;min-width:0"><div id="fn" style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">document.pdf</div><div id="fm" style="font-size:10px;color:var(--muted);margin-top:2px">2.4 MB · PDF</div></div>
+        <button class="ib sm sq danger" onclick="clearFile()"><i data-lucide="x" style="width:12px;height:12px;stroke:currentColor"></i></button>
+      </div>
+    </div>
+
+    <!-- VOICE PANEL -->
+    <div id="pVoice" style="display:none;padding:22px 20px;text-align:center">
+      <div id="micBtn" onclick="toggleMic()" style="width:68px;height:68px;border-radius:50%;background:rgba(0,212,255,.07);border:2px solid rgba(0,212,255,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0 auto 14px;transition:all .25s"><i data-lucide="mic" style="width:26px;height:26px;stroke:var(--cyan)"></i></div>
+      <div id="mSt" style="font-size:12px;color:var(--muted);margin-bottom:6px">Click microphone to start recording</div>
+      <div id="mTr" style="font-size:11px;color:var(--cyan2);font-style:italic;min-height:16px;margin-bottom:8px"></div>
+      <div id="wv" style="display:none;justify-content:center;align-items:center;gap:3px;height:26px">
+        <div class="wb" style="animation-delay:0s"></div><div class="wb" style="animation-delay:.09s"></div><div class="wb" style="animation-delay:.18s"></div><div class="wb" style="animation-delay:.12s"></div><div class="wb" style="animation-delay:.22s"></div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 15px 13px;border-top:1px solid var(--bdr)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="background:rgba(232,244,255,.06);border:1px solid rgba(232,244,255,.12);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--dim)">⌘↵</span>
+        <span style="font-size:11px;color:var(--dim)">to run</span>
+        <div class="vd"></div>
+        <span id="mTag" style="font-size:10px;font-family:'JetBrains Mono',monospace;color:rgba(0,212,255,.4)">TEXT MODE</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="tt"><button class="ib danger" id="cancelBtn" style="display:none" onclick="doCancel()"><i data-lucide="x-circle" style="width:14px;height:14px;stroke:currentColor"></i>Cancel</button><span class="tip">Cancel</span></div>
+        <div class="tt"><button class="ib" id="rerunBtn" style="display:none" onclick="runA(true)"><i data-lucide="refresh-cw" style="width:14px;height:14px;stroke:currentColor"></i>Re-run</button><span class="tip">Re-run (R)</span></div>
+        <button class="ib primary" id="runBtn" onclick="runA()"><i data-lucide="play" style="width:14px;height:14px;stroke:#04080F;fill:#04080F"></i><span data-i18n="btn_run">Run Analysis</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW QUERY PANEL -->
+  <div id="newQueryPanel">
+    <div class="nq-header">
+      <div class="nq-title"><i data-lucide="message-square-plus" style="width:16px;height:16px;stroke:currentColor"></i>NEW QUERY <span style="font-size:9px;padding:2px 8px;border-radius:99px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.25);color:var(--purple);font-weight:600;letter-spacing:.06em;font-family:'JetBrains Mono',monospace"><span id="nqCount">0</span> queries asked</span></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="tt"><button class="ib sm sq" onclick="clearNQHistory()" style="color:rgba(139,92,246,.6)"><i data-lucide="trash-2" style="width:12px;height:12px;stroke:currentColor"></i></button><span class="tip">Clear history</span></div>
+        <div class="tt"><button class="ib sm sq" onclick="closeNQ()"><i data-lucide="x" style="width:12px;height:12px;stroke:currentColor"></i></button><span class="tip">Close</span></div>
+      </div>
+    </div>
+    <div class="nq-body">
+      <div class="nq-input-wrap">
+        <textarea id="nqInput" rows="2" placeholder="Ask a follow-up question about these claims…"></textarea>
+        <button class="nq-run" onclick="submitNQ()" id="nqRunBtn"><i data-lucide="send" style="width:18px;height:18px;stroke:currentColor"></i></button>
+      </div>
+    </div>
+    <div class="nq-suggestions" id="nqSuggestions"></div>
+    <div class="nq-history" id="nqHistory" style="display:none"><div class="nq-hist-label">Query History</div><div id="nqHistList"></div></div>
+    <div class="nq-result" id="nqResult" style="display:none"></div>
+  </div>
+
+  <!-- PIPELINE BAR -->
+  <div id="pipeBar" style="display:none;margin-bottom:14px;background:var(--card);border:1px solid var(--bdr2);border-radius:12px;overflow:hidden">
+    <div style="display:flex"><div id="pipeSteps" style="display:flex;flex:1"></div><div style="display:flex;align-items:center;padding:0 13px;border-left:1px solid var(--bdr);min-width:120px"><span id="pipeMeta" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan)"></span></div></div>
+  </div>
+
+  <!-- RESULTS GRID -->
+  <div style="display:grid;grid-template-columns:1fr 266px;gap:16px">
+    <!-- LEFT -->
+    <div>
+      <div id="artPrev" style="display:none;background:var(--card);border:1px solid var(--bdr);border-radius:13px;padding:14px 17px;margin-bottom:12px">
+        <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan2);font-weight:600;margin-bottom:9px;opacity:.8">Article — click highlighted span to jump to claim</div>
+        <div id="artTxt" style="font-size:13px;line-height:1.85;color:rgba(232,244,255,.78)"></div>
+      </div>
+      <div id="filterBar" style="display:none;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="font-size:10px;color:var(--dim)">Filter:</span>
+          <button class="chip on" id="fAll" onclick="setF('ALL',this)"><i data-lucide="layers" style="width:10px;height:10px;stroke:currentColor"></i>All</button>
+          <button class="chip" id="fTrue" onclick="setF('TRUE',this)"><i data-lucide="check-circle" style="width:10px;height:10px;stroke:currentColor"></i>True</button>
+          <button class="chip" id="fFalse" onclick="setF('FALSE',this)"><i data-lucide="x-circle" style="width:10px;height:10px;stroke:currentColor"></i>False</button>
+          <button class="chip" id="fPart" onclick="setF('PARTIALLY_TRUE',this)"><i data-lucide="minus-circle" style="width:10px;height:10px;stroke:currentColor"></i>Partial</button>
+          <button class="chip" id="fConf" onclick="setF('CONFLICT',this)"><i data-lucide="alert-triangle" style="width:10px;height:10px;stroke:currentColor"></i>Conflict</button>
+        </div>
+      </div>
+      <div id="claimsSec" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <span style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px">EXTRACTED CLAIMS</span>
+            <span id="claimCnt" style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;background:rgba(0,212,255,.12);color:var(--cyan);padding:2px 10px;border-radius:99px;border:1px solid var(--bdr2)">0</span>
+          </div>
+          <div id="confBanner" style="display:none;align-items:center;gap:6px;background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.25);border-radius:7px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--amber)"><i data-lucide="zap" style="width:12px;height:12px;stroke:currentColor;fill:currentColor"></i><span id="confTxt"></span></div>
+        </div>
+        <div id="claimsList" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <div id="emptyState" style="background:var(--card);border:1px solid var(--bdr);border-radius:16px;padding:52px 20px;text-align:center">
+        <div style="width:52px;height:52px;border-radius:14px;border:1.5px dashed rgba(0,212,255,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;opacity:.55"><i data-lucide="scan-search" style="width:24px;height:24px;stroke:var(--cyan)"></i></div>
+        <div data-i18n="empty_title" style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;color:var(--muted);margin-bottom:7px">READY TO SCAN</div>
+        <div data-i18n="empty_desc" style="font-size:12px;color:var(--dim);line-height:1.7;max-width:260px;margin:0 auto">Load a demo or enter text, then click Run Analysis.</div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside style="display:flex;flex-direction:column;gap:14px">
+      <!-- Score ring -->
+      <div style="background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:16px 14px;text-align:center">
+        <div class="sl">Accuracy</div>
+        <div style="position:relative;width:90px;height:90px;margin:0 auto 10px">
+          <svg width="90" height="90" viewBox="0 0 90 90" style="transform:rotate(-90deg)">
+            <circle cx="45" cy="45" r="36" fill="none" stroke="rgba(0,212,255,.06)" stroke-width="7"/>
+            <circle id="rt" cx="45" cy="45" r="36" fill="none" stroke="var(--green)" stroke-width="7" stroke-dasharray="0 226.2" stroke-dashoffset="0" style="transition:stroke-dasharray 1.2s ease"/>
+            <circle id="rp" cx="45" cy="45" r="36" fill="none" stroke="var(--amber)" stroke-width="7" stroke-dasharray="0 226.2" stroke-dashoffset="0" style="transition:stroke-dasharray 1.2s ease"/>
+            <circle id="rf" cx="45" cy="45" r="36" fill="none" stroke="var(--red)" stroke-width="7" stroke-dasharray="0 226.2" stroke-dashoffset="0" style="transition:stroke-dasharray 1.2s ease"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <span id="ringPct" style="font-family:'Orbitron',sans-serif;font-weight:900;font-size:20px;line-height:1;color:var(--cyan)">—</span>
+            <span style="font-size:7px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:2px">accurate</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:9px;justify-content:center;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><span style="width:5px;height:5px;border-radius:50%;background:var(--green)"></span><span id="rlT">0 True</span></div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><span style="width:5px;height:5px;border-radius:50%;background:var(--red)"></span><span id="rlF">0 False</span></div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><span style="width:5px;height:5px;border-radius:50%;background:var(--amber)"></span><span id="rlP">0 Partial</span></div>
+        </div>
+      </div>
+
+      <div id="statsBlock" style="display:none"><div class="sl">Breakdown</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="sc" style="border-color:rgba(0,212,255,.22)"><div class="sn" style="color:var(--cyan)" id="sC">0</div><div class="sl2">Claims</div></div><div class="sc" style="border-color:rgba(255,184,0,.22)"><div class="sn" style="color:var(--amber)" id="sCo">0</div><div class="sl2">Conflicts</div></div><div class="sc" style="border-color:rgba(0,255,136,.22)"><div class="sn" style="color:var(--green)" id="sT">0</div><div class="sl2">True</div></div><div class="sc" style="border-color:rgba(255,59,92,.22)"><div class="sn" style="color:var(--red)" id="sF">0</div><div class="sl2">False</div></div></div></div>
+
+      <div id="aiBlock" style="display:none"><div class="sl">AI Detection</div><div style="background:var(--card);border:1px solid var(--bdr2);border-radius:13px;padding:13px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div><div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:24px;line-height:1;color:var(--green)">18<span style="font-size:12px">%</span></div><div style="font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:2px">AI probability</div></div><div style="display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:6px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(0,255,136,.08);color:var(--green);border:1px solid rgba(0,255,136,.25)"><i data-lucide="user" style="width:11px;height:11px;stroke:currentColor"></i>HUMAN</div></div><div style="height:3px;border-radius:2px;background:rgba(232,244,255,.06);overflow:hidden;margin-bottom:10px"><div style="height:100%;border-radius:2px;background:var(--green);width:18%;transition:width 1.2s ease"></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px"><div style="background:#070D18;border-radius:6px;padding:6px 8px"><div style="font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em">Burstiness</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--cyan2);margin-top:2px">0.61</div></div><div style="background:#070D18;border-radius:6px;padding:6px 8px"><div style="font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em">TTR</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--cyan2);margin-top:2px">0.58</div></div><div style="background:#070D18;border-radius:6px;padding:6px 8px"><div style="font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em">Avg Sent</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--cyan2);margin-top:2px">17.4</div></div><div style="background:#070D18;border-radius:6px;padding:6px 8px"><div style="font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em">Repeat</div><div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--cyan2);margin-top:2px">0.09</div></div></div></div></div>
+
+      <!-- Verdict key -->
+      <div><div class="sl">Verdict Key</div><div style="background:var(--card);border:1px solid var(--bdr2);border-radius:13px;overflow:hidden"><div style="display:flex;align-items:center;gap:9px;padding:8px 11px"><div style="width:24px;height:24px;border-radius:5px;background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="check" style="width:13px;height:13px;stroke:var(--green)"></i></div><div><div style="font-size:12px;font-weight:500">True</div><div style="font-size:10px;color:var(--muted)">Verified by sources</div></div></div><div style="display:flex;align-items:center;gap:9px;padding:8px 11px;border-top:1px solid var(--bdr)"><div style="width:24px;height:24px;border-radius:5px;background:rgba(255,59,92,.08);border:1px solid rgba(255,59,92,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="x" style="width:13px;height:13px;stroke:var(--red)"></i></div><div><div style="font-size:12px;font-weight:500">False</div><div style="font-size:10px;color:var(--muted)">Contradicted</div></div></div><div style="display:flex;align-items:center;gap:9px;padding:8px 11px;border-top:1px solid var(--bdr)"><div style="width:24px;height:24px;border-radius:5px;background:rgba(255,184,0,.07);border:1px solid rgba(255,184,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="minus" style="width:13px;height:13px;stroke:var(--amber)"></i></div><div><div style="font-size:12px;font-weight:500">Partial</div><div style="font-size:10px;color:var(--muted)">Mixed evidence</div></div></div><div style="display:flex;align-items:center;gap:9px;padding:8px 11px;border-top:1px solid var(--bdr)"><div style="width:24px;height:24px;border-radius:5px;background:rgba(232,244,255,.04);border:1px solid rgba(232,244,255,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i data-lucide="help-circle" style="width:13px;height:13px;stroke:var(--dim)"></i></div><div><div style="font-size:12px;font-weight:500">Unverifiable</div><div style="font-size:10px;color:var(--muted)">No evidence</div></div></div></div></div>
+
+      <div id="newQuerySideBtn"><button onclick="openNQ()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(139,92,246,.1);border:1.5px solid rgba(139,92,246,.3);border-radius:13px;padding:14px;color:var(--purple);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .22s;animation:glowBorder 3s ease-in-out infinite" onmouseover="this.style.background='rgba(139,92,246,.2)';this.style.borderColor='var(--purple)'" onmouseout="this.style.background='rgba(139,92,246,.1)';this.style.borderColor='rgba(139,92,246,.3)'"><i data-lucide="message-square-plus" style="width:18px;height:18px;stroke:currentColor"></i>Ask New Query</button><div style="text-align:center;font-size:10px;color:var(--dim);margin-top:6px">Ask a follow-up about these claims</div></div>
+    </aside>
+  </div>
+</div>
+
+<script src="/truthlens-app.js"></script>
+</body>
+</html>

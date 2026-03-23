@@ -1,0 +1,41 @@
+# ── Web framework ─────────────────────────────────────────────────────────────
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+pydantic==2.7.1
+pydantic-settings==2.2.1
+python-multipart==0.0.9
+python-dotenv==1.0.1
+
+# ── HTTP + article extraction ─────────────────────────────────────────────────
+httpx==0.27.0
+requests==2.31.0
+newspaper3k==0.2.8
+readability-lxml==0.8.1
+lxml[html_clean]==5.2.1
+
+# ── LangChain core ────────────────────────────────────────────────────────────
+langchain==0.2.5
+langchain-core==0.2.9
+langchain-openai==0.1.8
+langchain-community==0.2.5
+
+# ── Search providers (LangChain tools) ───────────────────────────────────────
+duckduckgo-search==6.1.7       # free fallback
+# serpapi                       # install if SERPAPI_KEY present
+# tavily-python                 # install if TAVILY_API_KEY present
+
+# ── OpenAI ────────────────────────────────────────────────────────────────────
+openai==1.30.1
+
+# ── Vector search ─────────────────────────────────────────────────────────────
+faiss-cpu==1.8.0
+sentence-transformers==3.0.0
+
+# ── Caching ───────────────────────────────────────────────────────────────────
+redis==5.0.4
+tenacity==8.3.0
+
+# ── Dev / testing ─────────────────────────────────────────────────────────────
+pytest==8.2.1
+pytest-asyncio==0.23.7
+ruff==0.4.5
