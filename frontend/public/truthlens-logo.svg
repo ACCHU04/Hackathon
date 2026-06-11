@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 140" fill="none">
+  <defs>
+    <!-- 3D Lens gradients -->
+    <radialGradient id="lensOuter" cx="0.4" cy="0.35" r="0.65">
+      <stop offset="0%" stop-color="#00D4FF" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#0088FF" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#0033AA" stop-opacity="0.95"/>
+    </radialGradient>
+    <radialGradient id="lensInner" cx="0.35" cy="0.3" r="0.55">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+      <stop offset="50%" stop-color="rgba(0,212,255,0.08)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.15)"/>
+    </radialGradient>
+    <radialGradient id="lensGlow" cx="0.3" cy="0.25" r="0.4">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.35)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <linearGradient id="checkGrad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00FF88"/>
+      <stop offset="100%" stop-color="#00D4FF"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00D4FF"/>
+      <stop offset="50%" stop-color="#4DE8FF"/>
+      <stop offset="100%" stop-color="#0088FF"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00D4FF" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#0066DD" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#0033AA" stop-opacity="0.6"/>
+    </linearGradient>
+    <filter id="glowSoft">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="dropShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,212,255,0.25)"/>
+    </filter>
+    <filter id="innerShadow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feOffset dx="0" dy="2"/>
+      <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1"/>
+    </filter>
+    <!-- 3D ring bevel -->
+    <linearGradient id="bevel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+      <stop offset="50%" stop-color="rgba(0,212,255,0.05)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.25)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 3D Lens Icon -->
+  <g transform="translate(15, 12)" filter="url(#dropShadow)">
+    <!-- Outer ring shadow/bevel -->
+    <circle cx="60" cy="58" r="54" fill="rgba(0,0,0,0.3)" transform="translate(1, 3)"/>
+
+    <!-- Outer ring (3D rim) -->
+    <circle cx="60" cy="58" r="54" fill="url(#ringGrad)" stroke="rgba(0,212,255,0.15)" stroke-width="0.5"/>
+    <circle cx="60" cy="58" r="48" fill="url(#lensOuter)" stroke="rgba(0,212,255,0.2)" stroke-width="0.5"/>
+
+    <!-- Inner 3D lens depth -->
+    <circle cx="60" cy="58" r="42" fill="url(#lensInner)"/>
+
+    <!-- Glass reflection highlight -->
+    <ellipse cx="44" cy="40" rx="22" ry="13" fill="url(#lensGlow)" transform="rotate(-30,44,40)"/>
+
+    <!-- Subtle glass edge highlight -->
+    <path d="M22 38 Q30 20 52 14" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+    <!-- 3D Checkmark -->
+    <g filter="url(#glowSoft)">
+      <!-- Checkmark shadow -->
+      <polyline points="44,58 53,67 76,45" stroke="rgba(0,0,0,0.3)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" transform="translate(1, 2)"/>
+      <!-- Checkmark main -->
+      <polyline points="44,58 53,67 76,45" stroke="url(#checkGrad)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Checkmark highlight -->
+      <polyline points="45,57 53,65 75,44" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- Bottom rim reflection -->
+    <path d="M18 70 Q30 98 60 104 Q90 98 102 70" stroke="rgba(0,212,255,0.08)" stroke-width="1" fill="none"/>
+  </g>
+
+  <!-- 3D Text -->
+  <g transform="translate(145, 0)">
+    <!-- Text shadow -->
+    <text x="2" y="52" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="42" font-weight="800" letter-spacing="4" fill="rgba(0,0,0,0.3)" transform="translate(0, 3)">TRUTHLENS</text>
+    <!-- Main text -->
+    <text x="0" y="52" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="42" font-weight="800" letter-spacing="4" fill="url(#textGrad)">TRUTHLENS</text>
+    <!-- Text highlight (3D top edge) -->
+    <text x="0" y="51.5" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="42" font-weight="800" letter-spacing="4" fill="rgba(255,255,255,0.08)" clip-path="url(#clipTop)">TRUTHLENS</text>
+
+    <!-- 3D underline bar -->
+    <rect x="0" y="65" width="200" height="3" rx="1.5" fill="url(#textGrad)" opacity="0.4" filter="url(#glowSoft)"/>
+    <rect x="0" y="65" width="200" height="1" rx="0.5" fill="rgba(255,255,255,0.15)"/>
+
+    <!-- Tagline with 3D effect -->
+    <text x="1" y="86" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="11" font-weight="500" letter-spacing="5" fill="rgba(0,0,0,0.2)">EVERY CLAIM. VERIFIED.</text>
+    <text x="0" y="85" font-family="'Inter','Segoe UI',system-ui,sans-serif" font-size="11" font-weight="500" letter-spacing="5" fill="rgba(0,212,255,0.55)">EVERY CLAIM. VERIFIED.</text>
+
+    <!-- Sub-accent dot -->
+    <circle cx="155" cy="84" r="2" fill="#00FF88" opacity="0.6" filter="url(#glowSoft)"/>
+  </g>
+</svg>
